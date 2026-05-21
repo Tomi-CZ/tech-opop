@@ -1,0 +1,102 @@
+{
+  "config": {
+    "abort": {
+      "already_configured": "Zařízení již nakonfigurováno",
+      "no_modules": "Nebyly detekovány žádné moduly nebo nebyly vybrány"
+    },
+    "error": {
+      "cannot_connect": "Nelze se připojit k Tech API.",
+      "invalid_auth": "Neplatné uživatelské jméno nebo heslo!",
+      "unknown": "Neznámá chyba. Zkus to znovu nebo nahlás chybu na ..."
+    },
+    "step": {
+      "user": {
+        "title": "Přihlášení k Tech OPOP",
+        "description": "Zadej své přihlašovací údaje pro službu emodul.eu nebo emodul.pl.",
+        "data": {
+          "password": "Heslo",
+          "username": "Uživatelské jméno"
+        }
+      },
+      "select_controllers": {
+        "title": "Výběr ovladačů",
+        "description": "Vyber ovladače, které chceš integrovat.",
+        "data": {
+          "controllers": "Ovladače k importu"
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "during_change": {
+      "message": "Parametr se právě aktualizuje, zkus to znovu za chvíli."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "temperature_entity": {
+        "name": "{entity_name} Teplota"
+      },
+      "battery_entity": {
+        "name": "{entity_name} Baterie"
+      },
+      "humidity_entity": {
+        "name": "Vlhkost"
+      },
+      "actuator_entity": {
+        "name": "Aktuátor {actuator_number}"
+      },
+      "underfloor_entity": {
+        "name": "Podlahové"
+      },
+      "window_sensor_entity": {
+        "name": "Okno {window_number}"
+      },
+      "ext_temperature_entity": {
+        "name": "Externí teplota"
+      },
+      "signal_strength_entity": {
+        "name": "{entity_name} Síla signálu"
+      },
+      "zone_state_entity": {
+        "name": "{entity_name} Stav alarmu"
+      }
+    },
+    "button": {
+      "refresh": {
+        "name": "Obnovit data"
+      }
+    },
+    "switch": {
+      "firing_switch": {
+        "name": "Provoz kotle"
+      }
+    },
+    "climate": {
+      "boiler_ch": {
+        "name": "Teplota kotle"
+      },
+      "boiler_dhw": {
+        "name": "Teplá voda (TUV)"
+      },
+      "boiler_indoor": {
+        "name": "Pokojová teplota"
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Nastavení PINů chráněných menu",
+        "description": "Zadej PINy pro přístup k chráněným sekcím kotle. Pokud PIN neznáš, nech pole prázdné.",
+        "data": {
+          "menu_pin_ms_service": "PIN servisního menu (MS root, group_id=0)",
+          "menu_pin_mi_calibration": "PIN kalibrace podavače (MI, group_id=30297)",
+          "menu_pin_ms_fan": "PIN menu ventilátoru (MS, group_id=30350)",
+          "scan_interval": "Interval dotazování (sekundy, min. 60)"
+        }
+      }
+    }
+  },
+  "title": "Tech OPOP"
+}

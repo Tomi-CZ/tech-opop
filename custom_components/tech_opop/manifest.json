@@ -1,0 +1,15 @@
+{
+  "domain": "tech_opop",
+  "name": "Tech OPOP",
+  "codeowners": [
+    "@Tomi-CZ"
+  ],
+  "config_flow": true,
+  "dependencies": [],
+  "documentation": "https://github.com/Tomi-CZ/tech-opop",
+  "integration_type": "hub",
+  "iot_class": "cloud_polling",
+  "issue_tracker": "https://github.com/Tomi-CZ/tech-opop/issues",
+  "requirements": [],
+  "version": "2026.5.0"
+}

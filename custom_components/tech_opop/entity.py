@@ -1,0 +1,74 @@
+"""Shared base entity helpers for Tech tile-derived devices."""
+
+from abc import abstractmethod
+from typing import Any
+
+from homeassistant.const import CONF_DESCRIPTION, CONF_ID, CONF_PARAMS, CONF_TYPE
+from homeassistant.core import callback
+from homeassistant.helpers import entity
+from homeassistant.helpers.device_registry import DeviceInfo
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
+
+from . import assets
+from .const import CONTROLLER, DOMAIN, MANUFACTURER, OPOP_DEFAULT_ENABLED_TILES, UDID
+from .coordinator import TechCoordinator
+
+
+class TileEntity(CoordinatorEntity, entity.Entity):
+    """Base class for Tech tile entities."""
+
+    _attr_has_entity_name = True
+
+    def __init__(self, device, coordinator: TechCoordinator, config_entry) -> None:
+        """Initialise common tile entity attributes."""
+        super().__init__(coordinator)
+        self._config_entry = config_entry
+        self._udid = config_entry.data[CONTROLLER][UDID]
+        self._id = device[CONF_ID]
+        self._unique_id = f"{self._udid}_{device[CONF_ID]}"
+        self._model = device[CONF_PARAMS].get(CONF_DESCRIPTION)
+        txt_id = device[CONF_PARAMS].get("txtId")
+        self._name = assets.get_text(txt_id) if txt_id and int(txt_id) > 0 else assets.get_text_by_type(device[CONF_TYPE])
+        self._state = self.get_state(device)
+
+    @property
+    def entity_registry_enabled_default(self) -> bool:
+        return self._id in OPOP_DEFAULT_ENABLED_TILES
+
+    @property
+    def suggested_object_id(self) -> str | None:
+        name_slug = assets.slugify_name(self._name)
+        slug = f"tile_{self._id}_{name_slug}" if name_slug else f"tile_{self._id}"
+        return f"{self._config_entry.title}_{slug}"
+
+    @property
+    def device_info(self) -> DeviceInfo | None:
+        return {
+            "identifiers": {(DOMAIN, self._udid)},
+            "name": self._config_entry.title,
+            "manufacturer": MANUFACTURER,
+        }
+
+    @property
+    def unique_id(self) -> str:
+        return self._unique_id
+
+    @property
+    def state(self):
+        return self._state
+
+    @abstractmethod
+    def get_state(self, device):
+        """Extract state from tile payload."""
+        raise NotImplementedError
+
+    def update_properties(self, device):
+        """Refresh state from latest tile payload."""
+        self._state = self.get_state(device)
+
+    @callback
+    def _handle_coordinator_update(self, *args: Any) -> None:
+        tile = self.coordinator.data.get("tiles", {}).get(self._id)
+        if tile is not None:
+            self.update_properties(tile)
+        self.async_write_ha_state()

@@ -1,0 +1,102 @@
+{
+  "config": {
+    "abort": {
+      "already_configured": "Urządzenie jest już skonfigurowane",
+      "no_modules": "Nie wykryto lub nie dodano żadnych sterowników"
+    },
+    "error": {
+      "cannot_connect": "Nie można się połączyć z Tech API.",
+      "invalid_auth": "Nieprawidłowa nazwa uzytkownika lub hasło!",
+      "unknown": "Nieznany błąd. Spróbuj ponownie lub zgłoś błąd do ..."
+    },
+    "step": {
+      "user": {
+        "title": "Logowanie do eModul",
+        "description": "Wprowadź swoje dane logowania do usługi emodul.eu lub emodul.pl.",
+        "data": {
+          "password": "Hasło",
+          "username": "Użytkownik"
+        }
+      },
+      "select_controllers": {
+        "title": "Wybór sterownika",
+        "description": "Wybierz sterowniki, które chcesz zintegrować.",
+        "data": {
+          "controllers": "Sterowniki do zintegrowania"
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "during_change": {
+      "message": "Parametr jest właśnie aktualizowany przez kocioł, spróbuj ponownie za chwilę."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "temperature_entity": {
+        "name": "{entity_name} Temperatura"
+      },
+      "battery_entity": {
+        "name": "{entity_name} Bateria"
+      },
+      "humidity_entity": {
+        "name": "Wilgotność"
+      },
+      "actuator_entity": {
+        "name": "Siłownik {actuator_number}"
+      },
+      "underfloor_entity": {
+        "name": "Podłogówka"
+      },
+      "window_sensor_entity": {
+        "name": "Okno {window_number}"
+      },
+      "ext_temperature_entity": {
+        "name": "Temperatura zewnętrzna"
+      },
+      "signal_strength_entity": {
+        "name": "{entity_name} Siła sygnału"
+      },
+      "zone_state_entity": {
+        "name": "{entity_name} Stan alarmu"
+      }
+    },
+    "button": {
+      "refresh": {
+        "name": "Odśwież dane"
+      }
+    },
+    "switch": {
+      "firing_switch": {
+        "name": "Praca kotła"
+      }
+    },
+    "climate": {
+      "boiler_ch": {
+        "name": "Temperatura kotła"
+      },
+      "boiler_dhw": {
+        "name": "Ciepła woda (CWU)"
+      },
+      "boiler_indoor": {
+        "name": "Temperatura pokojowa"
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "PINy chronionych menu",
+        "description": "Podaj PINy dostępu do chronionych sekcji kotła. Zostaw puste jeśli nie znasz.",
+        "data": {
+          "menu_pin_ms_service": "PIN menu serwisowego (MS root, group_id=0)",
+          "menu_pin_mi_calibration": "PIN kalibracji podajnika (MI, group_id=30297)",
+          "menu_pin_ms_fan": "PIN menu wentylatora (MS, group_id=30350)",
+          "scan_interval": "Interwał odpytywania (sekundy, min. 60)"
+        }
+      }
+    }
+  },
+  "title": "Tech OPOP"
+}

@@ -1,0 +1,50 @@
+# artifacts
+__pycache__
+.pytest*
+*.egg-info
+*/build/*
+*/dist/*
+.ruff_cache
+.venv/
+
+# misc
+.coverage
+coverage.xml
+
+
+# Home Assistant configuration
+config/*
+!config/configuration.yaml
+
+homeassistant/*
+
+# Devenv
+.devenv*
+devenv.local.nix
+
+# direnv
+.direnv
+
+# pre-commit
+.pre-commit-config.yaml
+
+### macOS ###
+# General
+.DS_Store
+.AppleDouble
+.LSOverride
+AGENTS.md
+
+# i18n - only cs/en/pl/sk are committed, rest ignored
+custom_components/tech_opop/i18n/de.json
+custom_components/tech_opop/i18n/es.json
+custom_components/tech_opop/i18n/et.json
+custom_components/tech_opop/i18n/fr.json
+custom_components/tech_opop/i18n/hr.json
+custom_components/tech_opop/i18n/hu.json
+custom_components/tech_opop/i18n/it.json
+custom_components/tech_opop/i18n/lt.json
+custom_components/tech_opop/i18n/nl.json
+custom_components/tech_opop/i18n/ro.json
+custom_components/tech_opop/i18n/ru.json
+custom_components/tech_opop/i18n/si.json

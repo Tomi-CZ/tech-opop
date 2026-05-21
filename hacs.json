@@ -1,0 +1,6 @@
+{
+    "name": "Tech OPOP",
+    "country": ["CZ", "SK", "PL"],
+    "render_readme": true,
+    "homeassistant": "2024.10.3"
+}

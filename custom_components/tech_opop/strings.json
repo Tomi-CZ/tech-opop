@@ -1,0 +1,102 @@
+{
+  "title": "Tech OPOP",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Tech OPOP Login",
+        "description": "Please enter your credentials to emodul.eu or emodul.pl service.",
+        "data": {
+          "username": "[%key:common::config_flow::data::username%]",
+          "password": "[%key:common::config_flow::data::password%]"
+        }
+      },
+      "select_controllers": {
+        "title": "Controller selection",
+        "description": "Please select the controllers you want to integrate.",
+        "data": {
+          "controllers": "Controllers to import"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "[%key:common::config_flow::error::cannot_connect%]",
+      "invalid_auth": "[%key:common::config_flow::error::invalid_auth%]",
+      "unknown": "[%key:common::config_flow::error::unknown%]"
+    },
+    "abort": {
+      "already_configured": "[%key:common::config_flow::abort::already_configured_device%]",
+      "no_modules": "No modules detected or selected"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Protected menu PINs",
+        "description": "Enter PINs to access protected sections of the boiler. Leave blank if unknown.",
+        "data": {
+          "menu_pin_ms_service": "Service menu PIN (MS root, group_id=0)",
+          "menu_pin_mi_calibration": "Feeder calibration PIN (MI, group_id=30297)",
+          "menu_pin_ms_fan": "Fan menu PIN (MS, group_id=30350)",
+          "scan_interval": "Polling interval (seconds, min. 60)"
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "during_change": {
+      "message": "Parameter is being updated by the boiler, try again in a moment."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "temperature_entity": {
+        "name": "{entity_name} temperature"
+      },
+      "battery_entity": {
+        "name": "{entity_name} battery"
+      },
+      "humidity_entity": {
+        "name": "[%key:component::sensor::entity_component::humidity::name%]"
+      },
+      "actuator_entity": {
+        "name": "actuator"
+      },
+      "underfloor_entity": {
+        "name": "underfloor"
+      },
+      "window_sensor_entity": {
+        "name": "window"
+      },
+      "ext_temperature_entity": {
+        "name": "[%key:component::sensor::entity_component::temperature::name%]"
+      },
+      "signal_strength_entity": {
+        "name": "{entity_name} signal strength"
+      },
+      "zone_state_entity": {
+        "name": "{entity_name} alarm state"
+      }
+    },
+    "button": {
+      "refresh": {
+        "name": "Refresh"
+      }
+    },
+    "switch": {
+      "firing_switch": {
+        "name": "Firing"
+      }
+    },
+    "climate": {
+      "boiler_ch": {
+        "name": "Boiler temperature"
+      },
+      "boiler_dhw": {
+        "name": "Boiler DHW"
+      },
+      "boiler_indoor": {
+        "name": "Room temperature"
+      }
+    }
+  }
+}
