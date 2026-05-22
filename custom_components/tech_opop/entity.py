@@ -38,8 +38,7 @@ class TileEntity(CoordinatorEntity, entity.Entity):
     @property
     def suggested_object_id(self) -> str | None:
         name_slug = assets.slugify_name(self._name)
-        slug = f"tile_{self._id}_{name_slug}" if name_slug else f"tile_{self._id}"
-        return f"{self._config_entry.title}_{slug}"
+        return f"tile_{self._id}_{name_slug}" if name_slug else f"tile_{self._id}"
 
     @property
     def device_info(self) -> DeviceInfo | None:

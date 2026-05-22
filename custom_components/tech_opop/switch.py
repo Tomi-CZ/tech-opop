@@ -96,8 +96,7 @@ class MenuSwitchEntity(CoordinatorEntity, SwitchEntity):
     def suggested_object_id(self) -> str | None:
         name_slug = assets.slugify_name(self._name)
         menu_prefix = self._menu_type.lower()
-        slug = f"{menu_prefix}_{self._item_id}_{name_slug}" if name_slug else f"{menu_prefix}_{self._item_id}"
-        return f"{self._config_entry.title}_{slug}"
+        return f"{menu_prefix}_{self._item_id}_{name_slug}" if name_slug else f"{menu_prefix}_{self._item_id}"
 
     @property
     def unique_id(self) -> str:
@@ -182,7 +181,7 @@ class FiringSwitchEntity(CoordinatorEntity, SwitchEntity):
 
     @property
     def suggested_object_id(self) -> str | None:
-        return f"{self._config_entry.title}_firing"
+        return "firing"
 
     @property
     def unique_id(self) -> str:

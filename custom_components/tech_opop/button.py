@@ -85,8 +85,7 @@ class MenuButtonEntity(CoordinatorEntity, ButtonEntity):
     def suggested_object_id(self) -> str | None:
         name_slug = assets.slugify_name(self._name)
         menu_prefix = self._menu_type.lower()
-        slug = f"{menu_prefix}_{self._item_id}_{name_slug}" if name_slug else f"{menu_prefix}_{self._item_id}"
-        return f"{self._config_entry.title}_{slug}"
+        return f"{menu_prefix}_{self._item_id}_{name_slug}" if name_slug else f"{menu_prefix}_{self._item_id}"
 
     @property
     def unique_id(self) -> str:
@@ -145,7 +144,7 @@ class RefreshButtonEntity(CoordinatorEntity, ButtonEntity):
         super().__init__(coordinator)
         udid = config_entry.data[CONTROLLER][UDID]
         self._attr_unique_id = f"{udid}_refresh"
-        self._attr_suggested_object_id = f"{config_entry.title}_refresh"
+        self._attr_suggested_object_id = "refresh"
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, udid)},
             name=config_entry.title,
