@@ -17,18 +17,6 @@ Vyvinuto a testováno na kotli **OPOP Biopel mini** s typem kontroléru **ST-581
 - Podpora sekcí menu chráněných PINem (servisní menu, kalibrace podavače) přes options flow
 - Stabilní `entity_id` odvozené z ID dlaždice/menu a slugu názvu
 
-**Platformy:**
-
-| Platforma       | Popis                                        |
-| --------------- | -------------------------------------------- |
-| `sensor`        | Tile senzory (teploty, stavy, ...)           |
-| `binary_sensor` | Binární tile senzory                         |
-| `climate`       | Termostaty topných zón                       |
-| `button`        | Akční tlačítka menu                          |
-| `number`        | Číselné parametry menu                       |
-| `select`        | Výběrové parametry menu                      |
-| `switch`        | Přepínačové parametry menu                   |
-
 ## Instalace
 
 ### HACS (doporučeno)
@@ -82,18 +70,6 @@ Opracowana i przetestowana na kotle **OPOP Biopel mini** z typem sterownika **ST
 - Obsługa sekcji menu chronionych PIN-em (menu serwisowe, kalibracja podajnika) przez options flow
 - Stabilne `entity_id` oparte na ID kafelka/menu i slugu nazwy
 
-**Platformy:**
-
-| Platforma       | Opis                                         |
-| --------------- | -------------------------------------------- |
-| `sensor`        | Czujniki kafelkowe (temperatury, stany, ...) |
-| `binary_sensor` | Binarne czujniki kafelkowe                   |
-| `climate`       | Termostaty stref grzewczych                  |
-| `button`        | Przyciski akcji menu                         |
-| `number`        | Numeryczne parametry menu                    |
-| `select`        | Parametry wyboru menu                        |
-| `switch`        | Parametry przełącznika menu                  |
-
 ## Instalacja
 
 ### HACS (zalecane)
@@ -146,18 +122,6 @@ Developed and tested on **OPOP Biopel mini** with controller type **ST-581v9**. 
 - Menu entities (buttons, numbers, selects, switches) for boiler parameters
 - Support for PIN-protected menu sections (service menu, feeder calibration) via options flow
 - Stable `entity_id` based on tile/menu ID and name slug
-
-**Platforms:**
-
-| Platform        | Description                              |
-| --------------- | ---------------------------------------- |
-| `sensor`        | Tile sensors (temperatures, states, ...) |
-| `binary_sensor` | Binary tile sensors                      |
-| `climate`       | Heating zone thermostats                 |
-| `button`        | Menu action buttons                      |
-| `number`        | Numeric menu parameters                  |
-| `select`        | Select menu parameters                   |
-| `switch`        | Switch menu parameters                   |
 
 ## Installation
 
