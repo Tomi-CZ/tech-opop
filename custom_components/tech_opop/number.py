@@ -46,7 +46,7 @@ async def async_setup_entry(
     coordinator: TechCoordinator = hass.data[DOMAIN][config_entry.entry_id]
     controller_udid = config_entry.data[CONTROLLER][UDID]
 
-    menus = await coordinator.api.get_module_menus(controller_udid)
+    menus = await coordinator.api.get_module_menus(controller_udid, options=config_entry.options)
     group_names = assets.build_menu_group_names(menus)
     depths = assets.compute_menu_depths(menus)
 

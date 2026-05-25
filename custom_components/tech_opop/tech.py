@@ -96,9 +96,9 @@ class Tech:
         """Return the cached tiles dict for module_udid."""
         return (await self.module_data(module_udid))["tiles"]
 
-    async def get_module_menus(self, module_udid: str) -> dict[str, dict[str, Any]]:
+    async def get_module_menus(self, module_udid: str, options: dict[str, Any] | None = None) -> dict[str, dict[str, Any]]:
         """Return the cached menus dict for module_udid."""
-        return (await self.module_data(module_udid))["menus"]
+        return (await self.module_data(module_udid, options=options))["menus"]
 
     async def module_data(
         self, module_udid: str, options: dict[str, Any] | None = None
