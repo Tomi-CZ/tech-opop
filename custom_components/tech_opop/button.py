@@ -111,13 +111,22 @@ class MenuButtonEntity(CoordinatorEntity, ButtonEntity):
         self._attr_available = item.get("access", False)
         self._dialogue_type = item.get("params", {}).get("type", 0)
 
+    def _dialogue_confirm_value(self) -> int:
+        """Return the correct confirmation value for this dialogue type.
+
+        type 0: OK dialog -> value 2
+        type 1: YES/NO dialog -> value 1 (YES)
+        type 2: info/cancel -> value 3
+        """
+        return {0: 2, 1: 1, 2: 3}.get(self._dialogue_type, 2)
+
     async def async_press(self) -> None:
         """Trigger the dialogue action."""
         await self.coordinator.async_request_refresh()
         try:
             await self.coordinator.api.set_menu_value(
                 self._udid, self._menu_type, self._item_id,
-                {"type": self._dialogue_type, "value": 1},
+                {"type": self._dialogue_type, "value": self._dialogue_confirm_value()},
             )
         except TechDuringChangeError:
             raise HomeAssistantError(
