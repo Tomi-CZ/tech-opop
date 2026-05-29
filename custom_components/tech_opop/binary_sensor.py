@@ -11,17 +11,14 @@ from homeassistant.const import (
 )
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.typing import UndefinedType
 
 from . import assets
 from .coordinator import TechCoordinator
 from .const import (
-    CONTROLLER,
     DOMAIN,
     TYPE_ADDITIONAL_PUMP,
     TYPE_FIRE_SENSOR,
     TYPE_RELAY,
-    UDID,
     VISIBILITY,
 )
 from .entity import TileEntity
@@ -31,7 +28,7 @@ _LOGGER = logging.getLogger(__name__)
 _BINARY_TILE_TYPES = {
     TYPE_RELAY: None,
     TYPE_ADDITIONAL_PUMP: None,
-    TYPE_FIRE_SENSOR: binary_sensor.BinarySensorDeviceClass.MOTION,
+    TYPE_FIRE_SENSOR: binary_sensor.BinarySensorDeviceClass.HEAT,
 }
 
 
@@ -42,8 +39,7 @@ async def async_setup_entry(
 ) -> None:
     """Set up Tech binary sensor entities."""
     coordinator: TechCoordinator = hass.data[DOMAIN][config_entry.entry_id]
-    controller_udid = config_entry.data[CONTROLLER][UDID]
-    tiles = await coordinator.api.get_module_tiles(controller_udid)
+    tiles = coordinator.data.get("tiles", {})
 
     entities = [
         RelaySensor(tile, coordinator, config_entry, _BINARY_TILE_TYPES[tile[CONF_TYPE]])
@@ -67,10 +63,6 @@ class TileBinarySensor(TileEntity, binary_sensor.BinarySensorEntity):
         return f"{self._unique_id}_tile_binary_sensor"
 
     @property
-    def name(self) -> str | UndefinedType | None:
-        return self._name
-
-    @property
     def is_on(self) -> bool | None:
         return bool(self._state) if self._state is not None else None
 
@@ -80,10 +72,10 @@ class RelaySensor(TileBinarySensor):
 
     def __init__(self, device, coordinator: TechCoordinator, config_entry, device_class=None) -> None:
         """Initialize the relay sensor."""
-        TileBinarySensor.__init__(self, device, coordinator, config_entry)
+        super().__init__(device, coordinator, config_entry)
         self._attr_device_class = device_class
         icon_id = device[CONF_PARAMS].get("iconId")
         self._attr_icon = assets.get_icon(icon_id) if icon_id else assets.get_icon_by_type(device[CONF_TYPE])
 
     def get_state(self, device):
-        return device[CONF_PARAMS]["workingStatus"]
+        return device[CONF_PARAMS].get("workingStatus")

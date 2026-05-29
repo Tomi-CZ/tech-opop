@@ -7,34 +7,12 @@ from homeassistant.const import Platform
 DOMAIN = "tech_opop"
 CONTROLLER = "controller"
 CONTROLLERS = "controllers"
-VER = "version"
 UDID = "udid"
 USER_ID = "user_id"
-SIGNAL_STRENGTH = "signalStrength"
 VISIBILITY = "visibility"
 VALUE = "value"
 MANUFACTURER = "TechControllers"
 WORKING_STATUS = "workingStatus"
-ACTUATORS = "actuators"
-BATTERY_LEVEL = "batteryLevel"
-ACTUATORS_OPEN = "actuatorsOpen"
-UNDERFLOOR = "underfloor"
-WINDOW_SENSORS = "windowsSensors"
-WINDOW_STATE = "windowState"
-MODE = "mode"
-CURRENT_STATE = "currentState"
-FLOOR_PUMP = "floorPump"
-SENSOR_TYPE = "sensorType"
-EVENTS = "events"
-CORRECT_WORK = "correctWork"
-NO_COMMUNICATION = "noCommunication"
-SENSOR_DAMAGED = "sensorDamaged"
-LOW_BATTERY = "lowBattery"
-LOW_SIGNAL = "lowSignal"
-TEMP_TOO_HIGH = "tempTooHigh"
-TEMP_TOO_LOW = "tempTooLow"
-SERVICE_ERROR = "serviceError"
-ZONE_STATE = "zoneState"
 
 DEFAULT_ICON = "mdi:eye"
 
@@ -135,9 +113,6 @@ MENU_ITEM_TYPE_ON_OFF = 10
 MENU_ITEM_TYPE_CHOICE = {11, 111, 112}
 MENU_ITEM_TYPE_DIALOGUE = 20
 MENU_ITEM_TYPE_UNIVERSAL_VALUE = 106
-
-# Items deeper than this limit are not registered as entities
-MENU_DEPTH_REGISTRATION_LIMIT: Final = 3
 
 # Value format types for menu number items
 VALUE_FORMAT_TENTH = 2

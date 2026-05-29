@@ -20,7 +20,6 @@ from homeassistant.const import (
 )
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.typing import UndefinedType
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from . import assets
@@ -66,11 +65,11 @@ async def async_setup_entry(
     _LOGGER.debug("Setting up sensor entry, controller udid: %s", controller_udid)
 
     coordinator = hass.data[DOMAIN][config_entry.entry_id]
-    tiles = await coordinator.api.get_module_tiles(controller_udid)
+    tiles = coordinator.data.get("tiles", {})
 
     entities = [
         entity
-        for tile in (tiles.values() if isinstance(tiles, dict) else tiles)
+        for tile in tiles.values()
         for entity in _build_tile_entities(tile, coordinator, config_entry)
     ]
 
@@ -117,9 +116,11 @@ def _build_tile_entities(
     if not tile.get(VISIBILITY, False):
         return []
 
-    # TYPE_FIRE_SENSOR has workingStatus=False when boiler is off — always show.
-    # TYPE_SW_VERSION never carries workingStatus at all.
-    always_show = {TYPE_FIRE_SENSOR, TYPE_SW_VERSION}
+    # workingStatus=False means "currently inactive", not "doesn't exist".
+    # TYPE_FIRE_SENSOR: False when boiler is off — always show.
+    # TYPE_FAN: gear=0 when boiler is off — always show.
+    # TYPE_SW_VERSION: never has workingStatus.
+    always_show = {TYPE_FIRE_SENSOR, TYPE_SW_VERSION, TYPE_FAN}
     if tile[CONF_TYPE] not in always_show and not tile.get(WORKING_STATUS, True):
         return []
 
@@ -172,15 +173,15 @@ def _build_open_therm_tile(
 
 
 _TILE_ENTITY_BUILDERS: dict[int, TileBuilder] = {
-    TYPE_TEMPERATURE: lambda tile, c, ce: [TileTemperatureSensor(tile, c, ce)],
-    TYPE_TEMPERATURE_CH: lambda tile, c, ce: [TileWidgetSensor(tile, c, ce)],
-    TYPE_FIRE_SENSOR: lambda tile, c, ce: [TileSimpleSensor(tile, c, ce, _SIMPLE_SENSOR_CONFIG[TYPE_FIRE_SENSOR])],
-    TYPE_FAN: lambda tile, c, ce: [TileSimpleSensor(tile, c, ce, _SIMPLE_SENSOR_CONFIG[TYPE_FAN])],
+    TYPE_TEMPERATURE: lambda tile, coord, entry: [TileTemperatureSensor(tile, coord, entry)],
+    TYPE_TEMPERATURE_CH: lambda tile, coord, entry: [TileWidgetSensor(tile, coord, entry)],
+    TYPE_FIRE_SENSOR: lambda tile, coord, entry: [TileSimpleSensor(tile, coord, entry, _SIMPLE_SENSOR_CONFIG[TYPE_FIRE_SENSOR])],
+    TYPE_FAN: lambda tile, coord, entry: [TileSimpleSensor(tile, coord, entry, _SIMPLE_SENSOR_CONFIG[TYPE_FAN])],
     TYPE_VALVE: _build_valve_tile,
-    TYPE_MIXING_VALVE: lambda tile, c, ce: [TileValveSensor(tile, c, ce, extra_attrs=False)],
-    TYPE_FUEL_SUPPLY: lambda tile, c, ce: [TileSimpleSensor(tile, c, ce, _SIMPLE_SENSOR_CONFIG[TYPE_FUEL_SUPPLY])],
-    TYPE_TEXT: lambda tile, c, ce: [TileTextSensor(tile, c, ce)],
-    TYPE_SW_VERSION: lambda tile, c, ce: [TileSwVersionSensor(tile, c, ce)],
+    TYPE_MIXING_VALVE: lambda tile, coord, entry: [TileValveSensor(tile, coord, entry, extra_attrs=False)],
+    TYPE_FUEL_SUPPLY: lambda tile, coord, entry: [TileSimpleSensor(tile, coord, entry, _SIMPLE_SENSOR_CONFIG[TYPE_FUEL_SUPPLY])],
+    TYPE_TEXT: lambda tile, coord, entry: [TileTextSensor(tile, coord, entry)],
+    TYPE_SW_VERSION: lambda tile, coord, entry: [TileSwVersionSensor(tile, coord, entry)],
     TYPE_OPEN_THERM: _build_open_therm_tile,
 }
 
@@ -189,7 +190,7 @@ _TILE_ENTITY_BUILDERS: dict[int, TileBuilder] = {
 # Tile sensor classes
 # ---------------------------------------------------------------------------
 
-class TileSensor(TileEntity, CoordinatorEntity):
+class TileSensor(TileEntity):
     """Base class for tile sensors."""
 
     _attr_entity_category = EntityCategory.DIAGNOSTIC
@@ -210,10 +211,6 @@ class TileTemperatureSensor(TileSensor, SensorEntity):
     def unique_id(self) -> str:
         return f"{self._unique_id}_tile_temperature"
 
-    @property
-    def name(self) -> str:
-        return self._name
-
     def get_state(self, device) -> Any:
         val = device[CONF_PARAMS].get(VALUE)
         return val / 10 if val is not None else None
@@ -233,15 +230,11 @@ class TileSimpleSensor(TileSensor, SensorEntity):
         self._attr_state_class = state_class
         if config.get("icon"):
             self._attr_icon = config["icon"]
-        TileSensor.__init__(self, device, coordinator, config_entry)
+        super().__init__(device, coordinator, config_entry)
 
     @property
     def unique_id(self) -> str:
         return f"{self._unique_id}_{self._unique_suffix}"
-
-    @property
-    def name(self) -> str:
-        return self._name
 
     def get_state(self, device) -> Any:
         val = device[CONF_PARAMS].get(self._state_key)
@@ -258,20 +251,16 @@ class TileValveSensor(TileSensor, SensorEntity):
 
     def __init__(self, device, coordinator: TechCoordinator, config_entry, extra_attrs: bool = False) -> None:
         """Initialize."""
-        TileSensor.__init__(self, device, coordinator, config_entry)
+        super().__init__(device, coordinator, config_entry)
         self._extra_attrs = extra_attrs
-        self._valve_number = device[CONF_PARAMS]["valveNumber"]
+        valve_number = device[CONF_PARAMS].get("valveNumber", "")
         self._attr_icon = assets.get_icon_by_type(device[CONF_TYPE])
-        self._name = assets.get_text_by_type(device[CONF_TYPE])
+        self._name = f"{assets.get_text_by_type(device[CONF_TYPE])} {valve_number}".strip()
         self.attrs: dict[str, Any] = {}
 
     @property
     def unique_id(self) -> str:
         return f"{self._unique_id}_tile_valve"
-
-    @property
-    def name(self) -> str:
-        return f"{self._name} {self._valve_number}"
 
     def get_state(self, device) -> Any:
         return device[CONF_PARAMS].get("openingPercentage")
@@ -305,7 +294,7 @@ class TileDescribedSensor(TileSensor, SensorEntity):
         self._state_key = description["state_key"]
         divisor, native_unit, device_class, state_class = assets.get_value_type_info(description.get("unit", 0))
         self._divisor = divisor
-        TileSensor.__init__(self, device, coordinator, config_entry)
+        super().__init__(device, coordinator, config_entry)
         self._attr_native_unit_of_measurement = native_unit
         self._attr_device_class = device_class
         self._attr_state_class = state_class
@@ -316,10 +305,6 @@ class TileDescribedSensor(TileSensor, SensorEntity):
     @property
     def unique_id(self) -> str:
         return f"{self._unique_id}_described_{self._state_key}"
-
-    @property
-    def name(self) -> str | UndefinedType | None:
-        return self._name
 
     def get_state(self, device) -> Any:
         val = device[CONF_PARAMS].get(self._state_key)
@@ -337,7 +322,7 @@ class TileDescribedSensor(TileSensor, SensorEntity):
         def _set(key: str, flag: bool = False) -> None:
             try:
                 self.attrs[key] = ("on" if device[CONF_PARAMS]["flags"][key] else "off") if flag else int(device[CONF_PARAMS][key])
-            except KeyError:
+            except (KeyError, ValueError, TypeError):
                 pass
 
         _set("alarmCode")
@@ -352,20 +337,16 @@ class TileTextSensor(TileSensor, SensorEntity):
 
     def __init__(self, device, coordinator: TechCoordinator, config_entry) -> None:
         """Initialize."""
-        TileSensor.__init__(self, device, coordinator, config_entry)
-        self._name = assets.get_text(device[CONF_PARAMS]["headerId"])
-        self._attr_icon = assets.get_icon(device[CONF_PARAMS]["iconId"])
+        super().__init__(device, coordinator, config_entry)
+        self._name = assets.get_text(device[CONF_PARAMS].get("headerId", 0))
+        self._attr_icon = assets.get_icon(device[CONF_PARAMS].get("iconId", 0))
 
     @property
     def unique_id(self) -> str:
         return f"{self._unique_id}_tile_text"
 
-    @property
-    def name(self) -> str | UndefinedType | None:
-        return self._name
-
     def get_state(self, device) -> Any:
-        return assets.get_text(device[CONF_PARAMS]["statusId"])
+        return assets.get_text(device[CONF_PARAMS].get("statusId", 0))
 
 
 class TileWidgetSensor(TileSensor, SensorEntity):
@@ -381,7 +362,7 @@ class TileWidgetSensor(TileSensor, SensorEntity):
 
     def __init__(self, device, coordinator: TechCoordinator, config_entry) -> None:
         """Initialize."""
-        TileSensor.__init__(self, device, coordinator, config_entry)
+        super().__init__(device, coordinator, config_entry)
         widget = device[CONF_PARAMS].get("widget2") or device[CONF_PARAMS].get("widget1")
         if widget:
             self._name = assets.get_text(widget["txtId"])
@@ -389,10 +370,6 @@ class TileWidgetSensor(TileSensor, SensorEntity):
     @property
     def unique_id(self) -> str:
         return f"{self._unique_id}_tile_widget"
-
-    @property
-    def name(self) -> str | UndefinedType | None:
-        return self._name
 
     def get_state(self, device) -> Any:
         widget = device[CONF_PARAMS].get("widget2") or device[CONF_PARAMS].get("widget1")
@@ -410,10 +387,6 @@ class TileSwVersionSensor(TileSensor, SensorEntity):
     @property
     def unique_id(self) -> str:
         return f"{self._unique_id}_tile_sw_version"
-
-    @property
-    def name(self) -> str | UndefinedType | None:
-        return self._name
 
     def get_state(self, device) -> Any:
         params = device[CONF_PARAMS]

@@ -12,10 +12,7 @@ from homeassistant.components.climate.const import (
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
-    ATTR_IDENTIFIERS,
-    ATTR_MANUFACTURER,
     ATTR_TEMPERATURE,
-    CONF_NAME,
     UnitOfTemperature,
 )
 from homeassistant.core import HomeAssistant, callback
@@ -23,8 +20,9 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import CONTROLLER, DOMAIN, MANUFACTURER, MENU_TYPE_USER, OPOP_FIRING_SWITCH_OFF_ID, UDID
+from .const import CONTROLLER, DOMAIN, MENU_TYPE_USER, OPOP_FIRING_SWITCH_OFF_ID, UDID
 from .coordinator import TechCoordinator
+from .menu_entity import make_device_info
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -58,13 +56,8 @@ class OPOPBoilerClimate(ClimateEntity, CoordinatorEntity):
 
     _attr_has_entity_name = True
     _attr_temperature_unit = UnitOfTemperature.CELSIUS
-    _attr_hvac_modes = [HVACMode.HEAT, HVACMode.OFF]
-    _attr_supported_features = (
-        ClimateEntityFeature.TARGET_TEMPERATURE
-        | ClimateEntityFeature.TURN_ON
-        | ClimateEntityFeature.TURN_OFF
-    )
-    _enable_turn_on_off_backwards_compatibility = False
+    _attr_hvac_modes = [HVACMode.HEAT]
+    _attr_supported_features = ClimateEntityFeature.TARGET_TEMPERATURE
 
     def __init__(
         self,
@@ -79,7 +72,6 @@ class OPOPBoilerClimate(ClimateEntity, CoordinatorEntity):
         """Initialise the base boiler climate entity."""
         super().__init__(coordinator)
         self._config_entry = config_entry
-        self._coordinator = coordinator
         self._udid = config_entry.data[CONTROLLER][UDID]
         self._unique_id = f"{self._udid}_{unique_suffix}"
         self._attr_translation_key = translation_key
@@ -98,11 +90,7 @@ class OPOPBoilerClimate(ClimateEntity, CoordinatorEntity):
 
     @property
     def device_info(self) -> DeviceInfo | None:
-        return {
-            ATTR_IDENTIFIERS: {(DOMAIN, self._udid)},
-            CONF_NAME: self._config_entry.title,
-            ATTR_MANUFACTURER: MANUFACTURER,
-        }
+        return make_device_info(self._udid, self._config_entry.title)
 
     @property
     def hvac_mode(self) -> HVACMode:
@@ -110,7 +98,7 @@ class OPOPBoilerClimate(ClimateEntity, CoordinatorEntity):
 
     @property
     def hvac_action(self) -> HVACAction | None:
-        return HVACAction.HEATING if self._hvac_mode == HVACMode.HEAT else HVACAction.IDLE
+        return HVACAction.HEATING if self._hvac_mode == HVACMode.HEAT else HVACAction.OFF
 
     @property
     def current_temperature(self) -> float | None:
@@ -119,13 +107,6 @@ class OPOPBoilerClimate(ClimateEntity, CoordinatorEntity):
     @property
     def target_temperature(self) -> float | None:
         return self._target_temperature
-
-    async def async_set_hvac_mode(self, hvac_mode: HVACMode) -> None:
-        """HVAC mode is read-only - controlled via firing buttons."""
-        _LOGGER.debug(
-            "%s: set_hvac_mode ignored (%s) - use firing buttons",
-            self._attr_translation_key, hvac_mode,
-        )
 
     def _refresh_hvac_mode(self, data: dict) -> None:
         self._hvac_mode = _opop_hvac_mode(data)
@@ -147,6 +128,20 @@ class OPOPBoilerClimate(ClimateEntity, CoordinatorEntity):
     async def _do_set_temperature(self, temperature: float) -> None:
         """Perform the actual API write - override in subclasses."""
         raise NotImplementedError
+
+    @callback
+    def _handle_coordinator_update(self, *args: Any) -> None:
+        self._refresh_from_data(self.coordinator.data or {})
+        self.async_write_ha_state()
+
+    async def async_set_temperature(self, **kwargs: Any) -> None:
+        if (temperature := kwargs.get(ATTR_TEMPERATURE)) is not None:
+            await self._debounced_set_temperature(temperature)
+
+    async def async_will_remove_from_hass(self) -> None:
+        """Cancel pending debounce task on unload."""
+        if self._debounce_task and not self._debounce_task.done():
+            self._debounce_task.cancel()
 
 
 class OPOPBoilerCH(OPOPBoilerClimate):
@@ -172,17 +167,8 @@ class OPOPBoilerCH(OPOPBoilerClimate):
             self._target_temperature = float(val) if val is not None else None
         self._refresh_hvac_mode(data)
 
-    @callback
-    def _handle_coordinator_update(self, *args: Any) -> None:
-        self._refresh_from_data(self._coordinator.data or {})
-        self.async_write_ha_state()
-
-    async def async_set_temperature(self, **kwargs: Any) -> None:
-        if (temperature := kwargs.get(ATTR_TEMPERATURE)) is not None:
-            await self._debounced_set_temperature(temperature)
-
     async def _do_set_temperature(self, temperature: float) -> None:
-        await self._coordinator.api.set_menu_value(self._udid, "MU", 2060, {"value": int(temperature)})
+        await self.coordinator.api.set_menu_value(self._udid, "MU", 2060, {"value": int(temperature)})
 
 
 class OPOPBoilerDHW(OPOPBoilerClimate):
@@ -208,17 +194,8 @@ class OPOPBoilerDHW(OPOPBoilerClimate):
             self._target_temperature = float(val) if val is not None else None
         self._refresh_hvac_mode(data)
 
-    @callback
-    def _handle_coordinator_update(self, *args: Any) -> None:
-        self._refresh_from_data(self._coordinator.data or {})
-        self.async_write_ha_state()
-
-    async def async_set_temperature(self, **kwargs: Any) -> None:
-        if (temperature := kwargs.get(ATTR_TEMPERATURE)) is not None:
-            await self._debounced_set_temperature(temperature)
-
     async def _do_set_temperature(self, temperature: float) -> None:
-        await self._coordinator.api.set_menu_value(self._udid, "MI", 3532, {"value": int(temperature)})
+        await self.coordinator.api.set_menu_value(self._udid, "MI", 3532, {"value": int(temperature)})
 
 
 class OPOPBoilerIndoor(OPOPBoilerClimate):
@@ -245,14 +222,5 @@ class OPOPBoilerIndoor(OPOPBoilerClimate):
             self._target_temperature = val / 10 if val is not None else None
         self._refresh_hvac_mode(data)
 
-    @callback
-    def _handle_coordinator_update(self, *args: Any) -> None:
-        self._refresh_from_data(self._coordinator.data or {})
-        self.async_write_ha_state()
-
-    async def async_set_temperature(self, **kwargs: Any) -> None:
-        if (temperature := kwargs.get(ATTR_TEMPERATURE)) is not None:
-            await self._debounced_set_temperature(temperature)
-
     async def _do_set_temperature(self, temperature: float) -> None:
-        await self._coordinator.api.set_menu_value(self._udid, "MU", 2089, {"value": int(temperature * 10)})
+        await self.coordinator.api.set_menu_value(self._udid, "MU", 2089, {"value": int(temperature * 10)})

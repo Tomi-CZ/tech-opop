@@ -2,15 +2,12 @@
 
 from __future__ import annotations
 
-import asyncio
 import json
 import logging
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:  # pragma: no cover
     from aiohttp import ClientSession
-else:  # pragma: no cover
-    ClientSession = Any
 
 from .const import MENU_PIN_KEYS, MENU_TYPES
 
@@ -67,18 +64,18 @@ class Tech:
         post_data = json.dumps({"username": username, "password": password})
         try:
             result = await self.post("authentication", post_data)
-            self.authenticated = result["authenticated"]
-            if self.authenticated:
-                self.user_id = str(result["user_id"])
-                self.token = result["token"]
-                self.headers = {
-                    "Accept": "application/json",
-                    "Accept-Encoding": "gzip",
-                    "Authorization": f"Bearer {self.token}",
-                }
         except TechError as err:
             raise TechLoginError(401, "Unauthorized") from err
-        return result["authenticated"]
+        self.authenticated = result["authenticated"]
+        if self.authenticated:
+            self.user_id = str(result["user_id"])
+            self.token = result["token"]
+            self.headers = {
+                "Accept": "application/json",
+                "Accept-Encoding": "gzip",
+                "Authorization": f"Bearer {self.token}",
+            }
+        return self.authenticated
 
     async def list_modules(self) -> dict[str, Any]:
         """Return the list of modules for the authenticated user."""
